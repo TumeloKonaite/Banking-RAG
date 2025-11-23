@@ -1,4 +1,4 @@
-# Banking RAG
+# Banking RAG [![CI](https://github.com/TumeloKonaite/Banking-RAG/actions/workflows/ci.yml/badge.svg)](https://github.com/TumeloKonaite/Banking-RAG/actions/workflows/ci.yml)
 
 Modular Retrieval-Augmented Generation pipeline tuned for banking documents. Drop your PDFs into the `data/` folder, run the build script, and start asking questions grounded entirely in your own content.
 
@@ -156,6 +156,33 @@ The assistant enforces the banking guardrails, cites only retrieved context, and
    ```
 
    Point the UI at your API base URL (defaults to `http://localhost:8000`), optionally set a `doc_type` filter, and chat. Answers include a quick list of the retrieved source documents for transparency.
+
+## Run with Docker
+
+Build the container and run the API without installing anything locally:
+
+```bash
+docker build -t banking-rag .
+
+docker run \
+  -p 8000:8000 \
+  -e OPENAI_API_KEY=sk-... \
+  -v "$(pwd)/data:/app/data" \
+  -v "$(pwd)/artifacts:/app/artifacts" \
+  banking-rag
+```
+
+Mounting `data/` and `artifacts/` keeps your PDFs and vector DB on the host. Once the container is running, hit `http://localhost:8000/ask` (POST) or launch the Gradio UI separately and target the same base URL.
+
+## Continuous integration
+
+A lightweight GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every push or pull request against `main`. The workflow:
+
+- checks out the repository and installs dependencies with Python 3.13,
+- byte-compiles `src/` to catch syntax/import issues early,
+- and, on successful runs against `main`, tags the commit as `ci-<run_number>` and pushes the tag back to the repo.
+
+If you want to skip auto-tagging for a fork, delete or edit the “Tag successful build” step in the workflow.
 
 ## Customisation ideas
 
