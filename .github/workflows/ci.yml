@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
     steps:
       - name: Checkout repository
@@ -31,6 +33,10 @@ jobs:
 
       - name: Byte-compile sources
         run: python -m compileall src
+
+      - name: Smoke test evaluation
+        if: env.OPENAI_API_KEY != ''
+        run: python -m src.evaluation.eval 0
 
       - name: Tag successful build
         if: github.ref == 'refs/heads/main'
