@@ -1,9 +1,6 @@
 import os
 import sys
 
-import numpy as np
-import pandas as pd
-import dill
 import pickle
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import GridSearchCV
@@ -46,16 +43,12 @@ def evaluate_models(X_train, y_train,X_test,y_test,models,param):
                 best_model.fit(X_train, y_train)
 
             if hasattr(best_model, "predict_proba"):
-                y_train_scores = best_model.predict_proba(X_train)[:, 1]
                 y_test_scores = best_model.predict_proba(X_test)[:, 1]
             elif hasattr(best_model, "decision_function"):
-                y_train_scores = best_model.decision_function(X_train)
                 y_test_scores = best_model.decision_function(X_test)
             else:
-                y_train_scores = best_model.predict(X_train)
                 y_test_scores = best_model.predict(X_test)
 
-            train_model_score = roc_auc_score(y_train, y_train_scores)
             test_model_score = roc_auc_score(y_test, y_test_scores)
 
             report[name] = test_model_score

@@ -24,3 +24,8 @@ dependencies = [
     "unstructured>=0.18.20",
     "uvicorn>=0.32.0",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.7.0",
+]
