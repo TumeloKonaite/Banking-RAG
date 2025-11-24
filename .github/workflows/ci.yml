@@ -34,6 +34,9 @@ jobs:
       - name: Byte-compile sources
         run: python -m compileall src
 
+      - name: Docker build
+        run: docker build -t banking-rag-ci .
+
       - name: Smoke test evaluation
         if: env.OPENAI_API_KEY != ''
         run: python -m src.evaluation.eval 0
