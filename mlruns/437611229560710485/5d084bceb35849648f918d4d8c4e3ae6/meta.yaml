@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/l/Documents/Banking-rag/mlruns/437611229560710485/5d084bceb35849648f918d4d8c4e3ae6/artifacts
+end_time: 1765189207036
+entry_point_name: ''
+experiment_id: '437611229560710485'
+lifecycle_stage: active
+run_id: 5d084bceb35849648f918d4d8c4e3ae6
+run_name: eval-0-direct_fact
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1765189206916
+status: 3
+tags: []
+user_id: l

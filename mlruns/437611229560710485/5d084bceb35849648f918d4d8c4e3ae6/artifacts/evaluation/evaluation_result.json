@@ -1,0 +1,37 @@
+{
+  "question": "What are the monthly service fees for the everyday current account?",
+  "reference_answer": "The everyday current account charges a single monthly service fee that covers standard transactions and digital banking access.",
+  "generated_answer": "The documents do not specify the exact monthly service fees for the everyday current account. They mention that fees are set out in the pricing guide, which can be obtained from the bank's website or branches. I recommend checking the latest pricing guide for detailed fee information.",
+  "keywords": [
+    "monthly service fee",
+    "current account"
+  ],
+  "feedback": "The answer correctly states that the documents do not specify exact fees and suggests checking the pricing guide, which is a reasonable response given the lack of specific info. However, it does not mention that the fee covers standard transactions and digital banking access, as indicated in the reference answer. Overall, it addresses the question but misses some details about what the fee covers.",
+  "retrieved_sources": [
+    {
+      "source": "C:\\Users\\l\\Documents\\Banking-rag\\data\\product_terms\\StandardTermsandConditions.pdf",
+      "doc_type": "product_terms",
+      "preview": "agreement, annual pricing letter, pricing guide or relevant interface and channels.  \n\u2022 We may, where permitted and without prior notice, charge all fees and costs which are due and payable against your \ndemand deposit account or other account nominated by you for these purposes or, if you did not nominate an account \nor if the funds in those accounts are insufficient, against any account of yours held with us. \n\u2022 We may charge you for enquiries we receive from you about a payment. We will infor"
+    },
+    {
+      "source": "C:\\Users\\l\\Documents\\Banking-rag\\data\\product_terms\\Terms_and_Conditions_FNB_General.pdf",
+      "doc_type": "product_terms",
+      "preview": "copy is available on www.fnb.co.za or from any FNB branch.)  \n\uf0a7 Unless we say otherwise all fees are non-refundable.  \n\uf0a7 We may change our fees from time to time.  We will advise you of this by giving you notice of the changes within a reasonable  time before the \nchange takes effect. \n3. WHEN AND HOW WE WILL SEND YOU STATEMENTS \n\uf0a7 To help you to check the transactions on your account we may make account statements available to you or you can go to any FNB branch and \nask for a statement. You mu"
+    },
+    {
+      "source": "C:\\Users\\l\\Documents\\Banking-rag\\data\\agreements\\Remote-Banking-Agreement.pdf",
+      "doc_type": "agreements",
+      "preview": "sometimes only refer to terms & conditions as \u201cT&Cs\u201d.  \n \n \n(b) Fees you must pay to use the Service Interfaces \nThe fee you must pay includes a services fee for use of the service channel and a transaction fee for the transactions you do on \nthe service interface/s. For more information about the service channel fees please refer to our pricing guide. A copy can be \nobtained on the website or from any branch  of the Bank. The fees will be c ollected (debited) from your relevant account fees \nan"
+    },
+    {
+      "source": "C:\\Users\\l\\Documents\\Banking-rag\\data\\product_terms\\Terms_and_Conditions_FNB_General.pdf",
+      "doc_type": "product_terms",
+      "preview": "with those rules. You must contact us if you don\u2019t understand any part of the rules.  \n\uf0a7 If there is a conflict (difference) between this agreement and the rules, the rules will apply. \n\uf0a7 We can change this agreement or any of the rules  at any time. We will tell you about any significant ( important) changes to this agreement or the \nrules before we make the change. Unless you end the agreement before the date the change comes into effect (applies), we can assume that you \nagreed to the change."
+    },
+    {
+      "source": "C:\\Users\\l\\Documents\\Banking-rag\\data\\agreements\\Remote-Banking-Agreement.pdf",
+      "doc_type": "agreements",
+      "preview": "communication services. You will be responsible for paying the cost of this and  the cost of any upgrades that you require.  To \naccess online banking you need to have access to a computer that has an active account with an Internet Service Provider \n(ISP) and an Internet browser software program. To access cellphone banking you need to be activated via your cellphone and \ncellphone network service provider. In order to use the  FNB Banking App you must ensure that you have a compatible \nsmartph"
+    }
+  ]
+}
