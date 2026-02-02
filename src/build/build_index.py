@@ -48,6 +48,7 @@ def build_index() -> None:
 
     ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
     manifest = {
+        "corpus_name": "Banking Demo Corpus",
         "built_at": datetime.now(UTC).isoformat(),
         "data_dir": str(DATA_DIR),
         "document_count": len(docs),
