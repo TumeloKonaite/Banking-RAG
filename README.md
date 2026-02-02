@@ -48,6 +48,13 @@ src/pipeline/rag_pipeline.py  -> ChatOpenAI
 
 ## Getting started
 
+## Quickstart (Demo)
+1. `docker build -t banking-rag .`
+2. `docker run -p 8000:8000 -e OPENAI_API_KEY=sk-... banking-rag`
+3. `python -m src.server.gradio_ui`
+4. Open `http://localhost:7860`
+5. Ask questions (corpus is prebuilt).
+
 ### Prerequisites
 
 - Python 3.13 (managed via `uv` or `pyenv`)
