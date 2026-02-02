@@ -3,6 +3,7 @@ FastAPI application exposing the Banking RAG pipeline via /ask.
 """
 
 import json
+import os
 from pathlib import Path
 from typing import List, Tuple
 
@@ -37,6 +38,7 @@ _MISSING_ARTIFACTS_MESSAGE = (
     "Artifacts missing. This demo expects prebuilt artifacts. "
     "Run: python -m src.build.build_index"
 )
+_DEMO_MODE = os.getenv("DEMO_MODE", "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _check_artifacts() -> Tuple[bool, str]:
@@ -94,6 +96,11 @@ def warm_pipeline() -> None:
     """
     global _READY_STATE
     _READY_STATE = _check_artifacts()
+    if _DEMO_MODE and not _READY_STATE[0]:
+        raise RuntimeError(
+            "Demo mode requires prebuilt artifacts. "
+            "Build them and ship artifacts/ with the app."
+        )
     if _READY_STATE[0]:
         get_pipeline()
 

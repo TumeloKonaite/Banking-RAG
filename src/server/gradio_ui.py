@@ -4,6 +4,9 @@ Gradio chat interface connected to the FastAPI /ask endpoint.
 
 from __future__ import annotations
 
+import json
+import os
+from pathlib import Path
 from typing import List, Sequence, Tuple, Union
 
 import gradio as gr
@@ -12,6 +15,10 @@ import httpx
 from src.server.schemas import AskResponse, AskRequest
 
 DEFAULT_API_URL = "http://localhost:8000"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+ARTIFACTS_DIR = PROJECT_ROOT / "artifacts"
+SAMPLE_QUESTIONS_PATH = ARTIFACTS_DIR / "sample_questions.json"
+DEMO_MODE = os.getenv("DEMO_MODE", "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 ChatHistory = Sequence[Union[dict, Tuple[str, str]]]
@@ -147,28 +154,53 @@ def _fetch_corpus_info_and_doc_types(api_url: str):
     choices = ["All"] + sorted(doc_types)
     return info, gr.Dropdown.update(choices=choices, value="All")
 
+def _load_suggested_questions() -> list[str]:
+    if not SAMPLE_QUESTIONS_PATH.exists():
+        return []
+    try:
+        payload = json.loads(SAMPLE_QUESTIONS_PATH.read_text(encoding="utf-8"))
+        questions = []
+        for row in payload:
+            question = row.get("question")
+            if question:
+                questions.append(str(question))
+        return questions
+    except Exception:
+        return []
+
 
 def build_interface(default_api_url: str = DEFAULT_API_URL) -> gr.Blocks:
     """
     Construct the Gradio Blocks app connected to the FastAPI backend.
     """
     with gr.Blocks(title="Banking RAG Chat") as demo:
-        gr.Markdown(
-            """
-            ## Banking RAG Chat
-            1. Start the FastAPI server (`uvicorn src.server.app:app --reload`)
-            2. Point this UI at the running API and start asking questions
-            """.strip()
-        )
+        if DEMO_MODE:
+            gr.Markdown(
+                """
+                ## Banking RAG Demo
+                Prebuilt corpus is bundled with the app. Just start the API and chat.
+                """.strip()
+            )
+        else:
+            gr.Markdown(
+                """
+                ## Banking RAG Chat
+                1. Start the FastAPI server (`uvicorn src.server.app:app --reload`)
+                2. Point this UI at the running API and start asking questions
+                """.strip()
+            )
 
-        api_url_box = gr.Textbox(
-            label="API base URL",
-            value=default_api_url,
-            placeholder="http://localhost:8000",
-        )
+        api_url_box = None
+        refresh_btn = None
+        if not DEMO_MODE:
+            api_url_box = gr.Textbox(
+                label="API base URL",
+                value=default_api_url,
+                placeholder="http://localhost:8000",
+            )
+            refresh_btn = gr.Button("Load corpus info")
 
         corpus_info = gr.Markdown("### Corpus\n- Not loaded yet")
-        refresh_btn = gr.Button("Load corpus info")
 
         doc_type_box = gr.Dropdown(
             label="Doc type filter",
@@ -187,8 +219,18 @@ def build_interface(default_api_url: str = DEFAULT_API_URL) -> gr.Blocks:
             placeholder="Type your question and press enter",
         )
         clear_btn = gr.Button("Clear conversation")
+        suggestions = _load_suggested_questions() if DEMO_MODE else []
+        if suggestions:
+            gr.Markdown("### Suggested questions")
+            with gr.Row():
+                for suggestion in suggestions[:6]:
+                    gr.Button(suggestion, size="sm").click(
+                        fn=lambda s=suggestion: s,
+                        inputs=[],
+                        outputs=question,
+                    )
 
-        def _respond(user_message, chat_history, doc_type_value, api_url_value):
+        def _respond(user_message, chat_history, doc_type_value, api_url_value=None):
             return _chat_response(
                 user_message,
                 chat_history or [],
@@ -196,15 +238,22 @@ def build_interface(default_api_url: str = DEFAULT_API_URL) -> gr.Blocks:
                 api_url_value or default_api_url,
             )
 
-        refresh_btn.click(
-            fn=_fetch_corpus_info_and_doc_types,
-            inputs=[api_url_box],
-            outputs=[corpus_info, doc_type_box],
-        )
+        if refresh_btn and api_url_box:
+            refresh_btn.click(
+                fn=_fetch_corpus_info_and_doc_types,
+                inputs=[api_url_box],
+                outputs=[corpus_info, doc_type_box],
+            )
+        else:
+            demo.load(
+                fn=lambda: _fetch_corpus_info_and_doc_types(default_api_url),
+                inputs=[],
+                outputs=[corpus_info, doc_type_box],
+            )
 
         question.submit(
             fn=_respond,
-            inputs=[question, chatbot, doc_type_box, api_url_box],
+            inputs=[question, chatbot, doc_type_box, api_url_box] if api_url_box else [question, chatbot, doc_type_box],
             outputs=chatbot,
         )
         question.submit(lambda: "", None, question)
