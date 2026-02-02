@@ -1,15 +1,16 @@
 {
   "corpus_name": "Banking Demo Corpus",
-  "built_at": "2026-02-02T00:00:00Z",
-  "data_dir": "data",
-  "document_count": 3,
+  "built_at": "2026-02-02T15:34:14.879509+00:00",
+  "data_dir": "C:\\Users\\l\\Documents\\Banking-rag\\data",
+  "document_count": 189,
   "document_types": {
-    "agreements": 1,
-    "product_terms": 2
+    "agreements": 7,
+    "product_terms": 26,
+    "public_pdfs": 156
   },
   "embedding_provider": "openai",
   "embedding_model": "text-embedding-3-large",
   "chunk_size": 1000,
   "chunk_overlap": 200,
-  "vector_db_dir": "artifacts/vector_db"
+  "vector_db_dir": "C:\\Users\\l\\Documents\\Banking-rag\\artifacts\\vector_db"
 }
