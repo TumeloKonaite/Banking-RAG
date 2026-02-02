@@ -152,6 +152,12 @@ The assistant enforces the banking guardrails, cites only retrieved context, and
    This loads the pipeline once and exposes `POST /ask`, which accepts a JSON body.
    The API will return `503` if prebuilt artifacts are missing.
 
+   The readiness endpoints:
+
+   - `GET /health` returns `200` when the server is up.
+   - `GET /ready` returns `200` only when prebuilt artifacts are present. When missing,
+     it returns `503` with guidance to run `python -m src.build.build_index`.
+
    ```json
    {
      "question": "Explain the ATM withdrawal fees.",
