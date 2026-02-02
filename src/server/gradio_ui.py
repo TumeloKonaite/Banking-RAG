@@ -58,7 +58,7 @@ def _format_answer(response: AskResponse) -> str:
 def _chat_response(
     message: str,
     history: ChatHistory | None,
-    doc_type: str,
+    doc_type: str | None,
     api_url: str,
 ) -> List[dict]:
     """
@@ -66,7 +66,7 @@ def _chat_response(
     """
     payload = AskRequest(
         question=message,
-        doc_type=doc_type or None,
+        doc_type=None if not doc_type or doc_type == "All" else doc_type,
         history=_history_to_messages(history),
     ).model_dump()
 
@@ -85,25 +85,33 @@ def _chat_response(
     return updated_history
 
 
-def _fetch_corpus_info(api_url: str) -> str:
-    """
-    Fetch manifest-backed corpus info from the API /ready endpoint.
-    """
+def _get_ready_payload(api_url: str) -> tuple[dict | None, str | None]:
     try:
         with httpx.Client(timeout=10) as client:
             resp = client.get(f"{api_url.rstrip('/')}/ready")
             if resp.status_code == 503:
                 detail = resp.json().get("detail", "Artifacts not ready")
-                return f"Corpus not ready: {detail}"
+                return None, f"Corpus not ready: {detail}"
             resp.raise_for_status()
-            payload = resp.json()
+            return resp.json(), None
     except Exception as exc:  # pragma: no cover - UI feedback only
-        return f"Corpus info unavailable: {exc}"
+        return None, f"Corpus info unavailable: {exc}"
 
-    if not payload.get("ready"):
-        return f"Corpus not ready: {payload.get('detail', 'Unknown error')}"
+
+def _fetch_corpus_info(api_url: str, payload: dict | None = None) -> str:
+    """
+    Fetch manifest-backed corpus info from the API /ready endpoint.
+    """
+    if payload is None:
+        payload, error = _get_ready_payload(api_url)
+        if error:
+            return error
+
+        if not payload or not payload.get("ready"):
+            return f"Corpus not ready: {payload.get('detail', 'Unknown error') if payload else 'Unknown error'}"
 
     manifest = payload.get("manifest") or {}
+    corpus_name = manifest.get("corpus_name", "Corpus")
     built_at = manifest.get("built_at", "unknown")
     doc_count = manifest.get("document_count", "unknown")
     doc_types = manifest.get("document_types", {})
@@ -112,7 +120,7 @@ def _fetch_corpus_info(api_url: str) -> str:
     chunk_overlap = manifest.get("chunk_overlap", "unknown")
 
     lines = [
-        "### Corpus",
+        f"### {corpus_name}",
         f"- Built at: {built_at}",
         f"- Documents: {doc_count}",
         f"- Embedding model: {embedding_model}",
@@ -122,6 +130,22 @@ def _fetch_corpus_info(api_url: str) -> str:
         joined = ", ".join(f"{k} ({v})" for k, v in doc_types.items())
         lines.append(f"- Doc types: {joined}")
     return "\n".join(lines)
+
+
+def _fetch_corpus_info_and_doc_types(api_url: str):
+    """
+    Fetch manifest and return markdown plus dropdown update.
+    """
+    payload, error = _get_ready_payload(api_url)
+    if error or not payload:
+        info = error or "Corpus info unavailable: Unknown error"
+        return info, gr.Dropdown.update(choices=["All"], value="All")
+
+    info = _fetch_corpus_info(api_url, payload=payload)
+    manifest = payload.get("manifest") or {}
+    doc_types = list((manifest.get("document_types") or {}).keys())
+    choices = ["All"] + sorted(doc_types)
+    return info, gr.Dropdown.update(choices=choices, value="All")
 
 
 def build_interface(default_api_url: str = DEFAULT_API_URL) -> gr.Blocks:
@@ -146,9 +170,10 @@ def build_interface(default_api_url: str = DEFAULT_API_URL) -> gr.Blocks:
         corpus_info = gr.Markdown("### Corpus\n- Not loaded yet")
         refresh_btn = gr.Button("Load corpus info")
 
-        doc_type_box = gr.Textbox(
+        doc_type_box = gr.Dropdown(
             label="Doc type filter",
-            placeholder="Optional metadata tag, e.g. product_terms",
+            choices=["All"],
+            value="All",
         )
 
         chatbot = gr.Chatbot(
@@ -172,9 +197,9 @@ def build_interface(default_api_url: str = DEFAULT_API_URL) -> gr.Blocks:
             )
 
         refresh_btn.click(
-            fn=_fetch_corpus_info,
+            fn=_fetch_corpus_info_and_doc_types,
             inputs=[api_url_box],
-            outputs=[corpus_info],
+            outputs=[corpus_info, doc_type_box],
         )
 
         question.submit(
