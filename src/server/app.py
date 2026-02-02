@@ -10,6 +10,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.server.dependencies import get_pipeline
+from src.retrieval.document_retriever import RetrieverConfig
 from src.server.schemas import AskRequest, AskResponse, SourceDocument
 
 app = FastAPI(
@@ -32,15 +33,50 @@ ARTIFACTS_DIR = PROJECT_ROOT / "artifacts"
 VECTOR_DB_DIR = ARTIFACTS_DIR / "vector_db"
 MANIFEST_PATH = ARTIFACTS_DIR / "manifest.json"
 _READY_STATE: Tuple[bool, str] = (False, "Not initialized")
+_MISSING_ARTIFACTS_MESSAGE = (
+    "Artifacts missing. This demo expects prebuilt artifacts. "
+    "Run: python -m src.build.build_index"
+)
 
 
 def _check_artifacts() -> Tuple[bool, str]:
     if not VECTOR_DB_DIR.exists():
-        return False, f"Missing vector DB at {VECTOR_DB_DIR}"
+        return False, _MISSING_ARTIFACTS_MESSAGE
     if not any(VECTOR_DB_DIR.iterdir()):
-        return False, f"Vector DB directory is empty at {VECTOR_DB_DIR}"
+        return False, _MISSING_ARTIFACTS_MESSAGE
     if not MANIFEST_PATH.exists():
-        return False, f"Missing manifest at {MANIFEST_PATH}"
+        return False, _MISSING_ARTIFACTS_MESSAGE
+
+    manifest = _load_manifest()
+    if manifest is None:
+        return False, "Manifest could not be read. Rebuild artifacts."
+
+    provider = manifest.get("embedding_provider")
+    model = manifest.get("embedding_model")
+    retriever_config = RetrieverConfig()
+    if provider:
+        expected_provider = retriever_config.provider
+        if provider != expected_provider:
+            return (
+                False,
+                "Embedding provider mismatch. "
+                f"Manifest={provider}, runtime={expected_provider}. "
+                "Rebuild artifacts or update config.",
+            )
+    if model:
+        expected_model = (
+            retriever_config.openai_model
+            if retriever_config.provider.lower() == "openai"
+            else retriever_config.hf_model
+        )
+        if model != expected_model:
+            return (
+                False,
+                "Embedding model mismatch. "
+                f"Manifest={model}, runtime={expected_model}. "
+                "Rebuild artifacts or update config.",
+            )
+
     return True, "Ready"
 
 
@@ -111,6 +147,8 @@ def readiness() -> dict:
     """
     ready, detail = _READY_STATE
     manifest = _load_manifest() if ready else None
+    if not ready:
+        raise HTTPException(status_code=503, detail=detail)
     return {"ready": ready, "detail": detail, "manifest": manifest}
 
 

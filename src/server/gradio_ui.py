@@ -92,6 +92,9 @@ def _fetch_corpus_info(api_url: str) -> str:
     try:
         with httpx.Client(timeout=10) as client:
             resp = client.get(f"{api_url.rstrip('/')}/ready")
+            if resp.status_code == 503:
+                detail = resp.json().get("detail", "Artifacts not ready")
+                return f"Corpus not ready: {detail}"
             resp.raise_for_status()
             payload = resp.json()
     except Exception as exc:  # pragma: no cover - UI feedback only
