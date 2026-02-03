@@ -177,13 +177,13 @@ def _fetch_corpus_info_and_doc_types(api_url: str):
     payload, error = _get_ready_payload(api_url)
     if error or not payload:
         info = error or "Corpus info unavailable: Unknown error"
-        return info, gr.Dropdown.update(choices=["All"], value="All")
+        return info, gr.update(choices=["All"], value="All")
 
     info = _fetch_corpus_info(api_url, payload=payload)
     manifest = payload.get("manifest") or {}
     doc_types = list((manifest.get("document_types") or {}).keys())
     choices = ["All"] + sorted(doc_types)
-    return info, gr.Dropdown.update(choices=choices, value="All")
+    return info, gr.update(choices=choices, value="All")
 
 def _load_suggested_questions() -> list[str]:
     if not SAMPLE_QUESTIONS_PATH.exists():
