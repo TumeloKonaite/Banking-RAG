@@ -223,6 +223,14 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) runs on pushes/PRs to `main
 - `401 invalid_api_key` from OpenAI -> rotate and update your OpenAI key/secret.
 - Gradio follow-up validation errors -> ensure latest image is deployed.
 
+## Support / Roadmap
+
+- Add autoscaling and CloudWatch alarms as CDK-managed infrastructure.
+- Add an operations dashboard for ALB, ECS, and API health/SLO trends.
+- Add blue/green deployment strategy for safer rollouts.
+- Expand evaluation/regression gates for retrieval and answer quality.
+- Harden auth and secrets-rotation practices for production readiness.
+
 ## License
 
 MIT. See `LICENSE`.
