@@ -25,6 +25,32 @@ DEMO_API_KEY = os.getenv("DEMO_API_KEY", "").strip()
 ChatHistory = Sequence[Union[dict, Tuple[str, str]]]
 
 
+def _coerce_content_to_text(content: object) -> str:
+    """
+    Convert Gradio Chatbot content payloads into plain text for AskRequest.
+    """
+    if content is None:
+        return ""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, dict):
+        text = content.get("text")
+        if isinstance(text, str):
+            return text
+        return json.dumps(content, ensure_ascii=False)
+    if isinstance(content, list):
+        parts: list[str] = []
+        for item in content:
+            if isinstance(item, dict) and isinstance(item.get("text"), str):
+                parts.append(item["text"])
+            elif isinstance(item, str):
+                parts.append(item)
+            else:
+                parts.append(json.dumps(item, ensure_ascii=False))
+        return "\n".join([p for p in parts if p])
+    return str(content)
+
+
 def _history_to_messages(history: ChatHistory | None) -> List[dict]:
     """
     Convert Gradio history objects into the format expected by /ask.
@@ -36,15 +62,15 @@ def _history_to_messages(history: ChatHistory | None) -> List[dict]:
     for entry in history:
         if isinstance(entry, dict):
             role = entry.get("role")
-            content = entry.get("content")
+            content = _coerce_content_to_text(entry.get("content"))
             if role and content is not None:
                 messages.append({"role": role, "content": content})
         elif isinstance(entry, (list, tuple)) and len(entry) == 2:
             user_msg, bot_msg = entry
             if user_msg:
-                messages.append({"role": "user", "content": user_msg})
+                messages.append({"role": "user", "content": _coerce_content_to_text(user_msg)})
             if bot_msg:
-                messages.append({"role": "assistant", "content": bot_msg})
+                messages.append({"role": "assistant", "content": _coerce_content_to_text(bot_msg)})
     return messages
 
 

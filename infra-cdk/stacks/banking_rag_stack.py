@@ -9,6 +9,7 @@ from aws_cdk import (
     aws_ecr as ecr,
     aws_ecs as ecs,
     aws_logs as logs,
+    aws_secretsmanager as secretsmanager,
 )
 from aws_cdk.aws_ecs_patterns import (
     ApplicationLoadBalancedFargateService,
@@ -21,12 +22,15 @@ class BankingRagStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        openai_api_key = os.getenv("OPENAI_API_KEY")
         demo_api_key = os.getenv("DEMO_API_KEY")
-        if not openai_api_key:
-            raise ValueError("OPENAI_API_KEY must be set for the task to start.")
         if not demo_api_key:
             raise ValueError("DEMO_API_KEY must be set for the task to start.")
+        openai_secret_name = os.getenv("OPENAI_SECRET_NAME", "banking-rag/openai-api-key")
+        openai_api_secret = secretsmanager.Secret.from_secret_name_v2(
+            self,
+            "OpenAiApiKeySecret",
+            openai_secret_name,
+        )
 
         # VPC (MVP: 2 AZs)
         vpc = ec2.Vpc(
@@ -80,8 +84,10 @@ class BankingRagStack(Stack):
                 environment={
                     "DEMO_MODE": "true",
                     "DEMO_API_KEY": demo_api_key,
-                    "OPENAI_API_KEY": openai_api_key,
                     # Add non-secret env vars here
+                },
+                secrets={
+                    "OPENAI_API_KEY": ecs.Secret.from_secrets_manager(openai_api_secret),
                 },
             ),
             health_check_grace_period=Duration.seconds(60),
